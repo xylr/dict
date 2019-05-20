@@ -4,7 +4,7 @@ from pymysql import *
 import sys
 import signal
 import re
-
+from time import *
 
 def login(c,db,cur):
     c.send(b'OK')
@@ -77,7 +77,7 @@ def enter(c,cur):
                 c.send(b'name is not exist,please input again')
     while True:
         #根据用户名匹配相对应的密码进行和客户端的密码校对
-        cur.execute('select password from login1 where name = %s',[name])
+        cur.execute('select password from login1 where name = %s;',[name])
         t = cur.fetchone()
         password = c.recv(1024).decode()
         if not password:
@@ -88,17 +88,48 @@ def enter(c,cur):
         if t[0] != password:
             c.send(b'password is wrong please input again')
 
-def check_word(c,f):
+def check_word(c,f,name,cur,db):
     while True:
+        strall = ""
         l = []
+        str2 = ""
+        str3 = ""
+        t1 = tuple()
+        t2 = tuple()
         word = c.recv(1024).decode()
-        # head = word[0]
+        cur.execute('select curdate();')
+        t1 = cur.fetchone()
+        str2 = str(t1[0])
+        cur.execute('select curtime();')
+        t2 = cur.fetchone()
+        str3 = ' ' + str(t2[0])
+        strall = str2 + str3
         pattern = '[ ]+'
         for line in f:
             l = re.split(pattern,line)
             if l[0] == word:
                 str2 = ' '.join(l[1::])
                 c.send(str2.encode())
+                f.seek(0,0)
+                cur.execute("insert into login2(name,word,time) values(%s,%s,%s);",[name,word,strall])
+                db.commit()
+                break
+        else:
+            c.send(b'Not Found this word')
+
+def check_history(c,name,cur):
+    print("history")
+    cur.execute('select name,word,time from login2 where name = %s',[name])
+    t = cur.fetchall()
+    history = ''
+    for i in t:
+        for j in i:
+            if j == i[-1]:
+                str1 = str(j)
+                history+=(str1+"#")
+                break
+            history+=(" "+j+" ")
+    c.send(history.encode())
 
 def handle(c):
     while True:
@@ -123,13 +154,12 @@ def handle(c):
                 print("用户退出")
             elif data == "登录":
                 name = enter(c,cur1)
-                print(name)
                 while True:
                     data = c.recv(1024).decode()
                     if data == "查单词":
-                        check_word(c,f)
-                    elif data == "查看历史记录":
-                        pass
+                        check_word(c,f,name,cur2,db2)
+                    elif data == "查找历史记录":
+                        check_history(c,name,cur2)
                     elif data == "退出":
                         break
         finally:

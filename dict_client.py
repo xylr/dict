@@ -57,35 +57,47 @@ def enter(s):
 
 def check_word(s):
     while True:
-        s.send("查单词".encode())
-        word_name = str(input("请输入所要查询的单词"))
+        word_name = str(input("请输入所要查询的单词:"))
         s.send(word_name.encode())
         data = s.recv(1024).decode()
-        print(data)
-        print('''                继续查询请输入１         
-                取消查询请输入任意键''')
-        a = int(input("请问是否要继续查询?"))
-        if a == 1:
+        if data == 'Not Found this word':
+            print("没有此单词,请重新输入")
             continue
         else:
-            return
+            print('解释:',data)
+            print('''继续查询请输入１         
+取消查询请输入任意键
+
+''')
+            a = int(input("请问是否要继续查询?"))
+            if a == 1:
+                continue
+            else:
+                return
+def check_history(s):
+    str3 = print(""" name    word  date
+        """)
+    history = s.recv(1024).decode()
+    l = history.split("#")
+    for i in l:
+        print(i)
+    return
 def main():
-    str1 = '''            1.登录
-            2.注册
-            3.退出
-            请输入对应序号执行相应功能
+    str1 = '''                          1.登录
+                          2.注册
+                          3.退出
+                 请输入对应序号执行相应功能
     '''
-    str2 = '''            1.查单词
-            2.历史记录
-            3.退出到一级界面
-            请输入对应序号执行相应功能
+    str2 = '''                          1.查单词
+                          2.历史记录
+                          3.退出到一级界面
+                 请输入对应序号执行相应功能
     '''
 
     #!/usr/bin/env python3
     ip = argv[1]
     port = int(argv[2])
     addr = (ip,port)
-    print(addr)
     s = socket()
     s.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
     s.connect(addr)
@@ -101,8 +113,10 @@ def main():
                     print(str2)
                     a = int(input("请选择:"))
                     if a == 1:
+                        s.send("查单词".encode())
                         check_word(s)
                     if a == 2:
+                        s.send("查找历史记录".encode())
                         check_history(s)
                     if a == 3:
                         print("已退回到登录界面")
