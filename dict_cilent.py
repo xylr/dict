@@ -16,7 +16,7 @@ def main():
     port = argv[2]
     addr = (ip,port)
     s = socket()
-    s.setsockopt = ()
+    s.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
     s.connect(addr)
     print(" "*6,end = '')
     print("1.登陆")
@@ -29,3 +29,5 @@ def main():
     elif a == 2:
         s.send("注册".encode())
     
+if __name__ == "__main__":
+    main()

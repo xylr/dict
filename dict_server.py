@@ -19,6 +19,7 @@ def handle():
 def main():
     addr = ('0.0.0.0',8888)
     s = socket()
+    s.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
     s.bind((addr))
     s.listen(5)
     while True:
@@ -30,3 +31,6 @@ def main():
         p = Process(target = handle)
         p.start()
         p.Daemon = True
+
+if __name__ == "__main__":
+    main()
