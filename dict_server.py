@@ -36,7 +36,7 @@ def login():
                     continue
                 else:
                     c.send(b'successfully login')
-                    cur.excute('insert into login1('name','password') \
+                    cur.excute('insert into login1("name","password" \
                         values(%s%s);',[name,l4[0]])
                     db.commit()
                     return
@@ -47,7 +47,7 @@ def login():
         db.close()
 def handle():
     data = c.recv(1024).decode()
-    if data = "注册":
+    if data == "注册":
         login()
 
 
