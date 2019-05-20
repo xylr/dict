@@ -3,6 +3,8 @@ from multiprocessing import Process
 from pymysql import *
 import sys
 import signal
+import re
+
 
 def login(c,db,cur):
     c.send(b'OK')
@@ -85,30 +87,56 @@ def enter(c,cur):
             return name
         if t[0] != password:
             c.send(b'password is wrong please input again')
-def handle(c):
-    try:#连接用户信息数据库,进行相应的操作
-        db1 = connect( host="localhost",user="root",
-                    password="123456",database="login",
-                    charset="utf8")
-        #创建cur1对象来操作数据库
-        cur1 = db1.cursor()
-        #连接历史记录表,进行历史记录的读取
-        db2 = connect( host="localhost",user="root",
-                    password="123456",database="login",
-                    charset="utf8")
-        cur2 = db2.cursor()
-        #接收用户发送的请求
-        data = c.recv(1024).decode()
-        if data == "注册":
-            login(c,db1,cur1)
-        if data == "quit":
-            print("用户退出")
-        if data == "登录":
-            name = enter(c,cur1)
-    finally:
-        cur1.close()
-        db1.close()
 
+def check_word(c,f):
+    while True:
+        l = []
+        word = c.recv(1024).decode()
+        # head = word[0]
+        pattern = '[ ]+'
+        for line in f:
+            l = re.split(pattern,line)
+            if l[0] == word:
+                str2 = ' '.join(l[1::])
+                c.send(str2.encode())
+
+def handle(c):
+    while True:
+        try:#连接用户信息数据库,进行相应的操作
+            db1 = connect( host="localhost",user="root",
+                        password="123456",database="login",
+                        charset="utf8")
+            #创建cur1对象来操作数据库
+            cur1 = db1.cursor()
+            #连接历史记录表,进行历史记录的读取
+            db2 = connect( host="localhost",user="root",
+                        password="123456",database="login",
+                        charset="utf8")
+            #将文件打开进行查文件
+            f = open('./dict.txt','r+')
+            cur2 = db2.cursor()
+            #接收用户发送的请求
+            data = c.recv(1024).decode()
+            if data == "注册":
+                login(c,db1,cur1)
+            elif data == "quit":
+                print("用户退出")
+            elif data == "登录":
+                name = enter(c,cur1)
+                print(name)
+                while True:
+                    data = c.recv(1024).decode()
+                    if data == "查单词":
+                        check_word(c,f)
+                    elif data == "查看历史记录":
+                        pass
+                    elif data == "退出":
+                        break
+        finally:
+            cur1.close()
+            db1.close()
+            cur2.close()
+            db2.close()
 
 def main():
     signal.signal(signal.SIGCHLD,signal.SIG_IGN)

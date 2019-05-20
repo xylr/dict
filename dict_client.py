@@ -57,28 +57,18 @@ def enter(s):
 
 def check_word(s):
     while True:
+        s.send("查单词".encode())
         word_name = str(input("请输入所要查询的单词"))
-        s.send(word_name)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        s.send(word_name.encode())
+        data = s.recv(1024).decode()
+        print(data)
+        print('''                继续查询请输入１         
+                取消查询请输入任意键''')
+        a = int(input("请问是否要继续查询?"))
+        if a == 1:
+            continue
+        else:
+            return
 def main():
     str1 = '''            1.登录
             2.注册
@@ -107,7 +97,16 @@ def main():
             if message == "false":
                 print(str1)
             elif message == "OK":
-                break
+                while True:
+                    print(str2)
+                    a = int(input("请选择:"))
+                    if a == 1:
+                        check_word(s)
+                    if a == 2:
+                        check_history(s)
+                    if a == 3:
+                        print("已退回到登录界面")
+                        break
         elif a == 2:
             login(s)
             print(str1)
@@ -121,7 +120,5 @@ def main():
             check_word(s)
         if a == 2:
             check_history(s)
-
-
 if __name__ == "__main__":
     main()
