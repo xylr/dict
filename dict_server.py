@@ -89,36 +89,38 @@ def enter(c,cur):
             c.send(b'password is wrong please input again')
 
 def check_word(c,f,name,cur,db):
-    while True:
-        strall = ""
-        l = []
-        str2 = ""
-        str3 = ""
-        t1 = tuple()
-        t2 = tuple()
-        word = c.recv(1024).decode()
-        cur.execute('select curdate();')
-        t1 = cur.fetchone()
-        str2 = str(t1[0])
-        cur.execute('select curtime();')
-        t2 = cur.fetchone()
-        str3 = ' ' + str(t2[0])
-        strall = str2 + str3
-        pattern = '[ ]+'
-        for line in f:
-            l = re.split(pattern,line)
-            if l[0] == word:
-                str2 = ' '.join(l[1::])
-                c.send(str2.encode())
-                f.seek(0,0)
-                cur.execute("insert into login2(name,word,time) values(%s,%s,%s);",[name,word,strall])
-                db.commit()
-                break
-        else:
-            c.send(b'Not Found this word')
+    try:
+        while True:
+            strall = ""
+            l = []
+            str2 = ""
+            str3 = ""
+            t1 = tuple()
+            t2 = tuple()
+            word = c.recv(1024).decode()
+            cur.execute('select curdate();')
+            t1 = cur.fetchone()
+            str2 = str(t1[0])
+            cur.execute('select curtime();')
+            t2 = cur.fetchone()
+            str3 = ' ' + str(t2[0])
+            strall = str2 + str3
+            pattern = '[ ]+'
+            for line in f:
+                l = re.split(pattern,line)
+                if l[0] == word:
+                    str2 = ' '.join(l[1::])
+                    c.send(str2.encode())
+                    f.seek(0,0)
+                    cur.execute("insert into login2(name,word,time) values(%s,%s,%s);",[name,word,strall])
+                    db.commit()
+                    break
+            else:
+                c.send(b'Not Found this word')
+    except:
+        db.rollback()
 
 def check_history(c,name,cur):
-    print("history")
     cur.execute('select name,word,time from login2 where name = %s',[name])
     t = cur.fetchall()
     history = ''
@@ -162,6 +164,10 @@ def handle(c):
                         check_history(c,name,cur2)
                     elif data == "退出":
                         break
+        except KeyboardInterrupt:
+            sys.exit("服务器退出")
+        except Exception as e:
+            print(e)
         finally:
             cur1.close()
             db1.close()
@@ -178,6 +184,8 @@ def main():
     while True:
         try:
             c,addr = s.accept()
+        except KeyboardInterrupt:
+            sys.exit("服务器退出")
         except:
             print("请重新连接")
             continue

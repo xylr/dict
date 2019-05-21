@@ -119,6 +119,7 @@ def main():
                         s.send("查找历史记录".encode())
                         check_history(s)
                     if a == 3:
+                        s.send("退出".encode())
                         print("已退回到登录界面")
                         break
         elif a == 2:
@@ -127,12 +128,5 @@ def main():
         elif a == 3:
             s.send(b'quit')
             exit("程序退出")
-    while True:
-        print(str2)
-        a = int(input("请选择:"))
-        if a == 1:
-            check_word(s)
-        if a == 2:
-            check_history(s)
 if __name__ == "__main__":
     main()
