@@ -73,6 +73,7 @@ def check_word(s):
             if a == 1:
                 continue
             else:
+                c.send("退出查询".encode())
                 return
 def check_history(s):
     str3 = print(""" name    word  date

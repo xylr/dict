@@ -1,3 +1,10 @@
+'''
+name:Tedu
+date:2018-10-1
+email:2389196764@qq.com 
+moudle:pymysql
+This is a dict peoject for AID
+'''
 from socket import *
 from multiprocessing import Process
 from pymysql import *
@@ -98,6 +105,9 @@ def check_word(c,f,name,cur,db):
             t1 = tuple()
             t2 = tuple()
             word = c.recv(1024).decode()
+            if word == "退出查询":
+                f.close()
+                return
             cur.execute('select curdate();')
             t1 = cur.fetchone()
             str2 = str(t1[0])
@@ -118,6 +128,7 @@ def check_word(c,f,name,cur,db):
             else:
                 c.send(b'Not Found this word')
     except:
+        f.close()
         db.rollback()
 
 def check_history(c,name,cur):
